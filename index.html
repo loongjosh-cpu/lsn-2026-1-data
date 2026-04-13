@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三角洲新春活动模拟战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+
+        /* 屏幕四周固定留白 */
+        body {
+            background: #12181b;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 30px 40px;
+            background-image: linear-gradient(45deg, #1a1f23 25%, #12181b 25%, #12181b 50%, #1a1f23 50%);
+            background-size: 20px 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            color: #e6b85c;
+            font-size: 30px;
+            text-shadow: 0 0 10px rgba(230, 184, 92, 0.5);
+        }
+
+        /* 顶部资源栏 */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1e2529;
+            padding: 14px 24px;
+            border-radius: 10px;
+            border: 1px solid #2d4a3e;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .coin-info {
+            font-size: 20px;
+            font-weight: bold;
+            color: #e6b85c;
+        }
+
+        .btn {
+            background: #2d4a3e;
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #3a5f4e;
+            box-shadow: 0 0 10px rgba(58, 95, 78, 0.6);
+        }
+
+        .btn:disabled {
+            background: #333;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-gold {
+            background: #b8862b;
+            border: 1px solid #e6b85c;
+        }
+
+        .btn-gold:hover {
+            background: #e6b85c;
+            color: #12181b;
+        }
+
+        .btn-back {
+            background: #444;
+            border: 1px solid #555;
+        }
+
+        .btn-back:hover {
+            background: #555;
+        }
+
+        /* 分步选择面板 */
+        .step-panel {
+            display: none;
+            background: #1e2529;
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 25px;
+            border: 1px solid #2d4a3e;
+        }
+
+        .step-panel.active {
+            display: block;
+        }
+
+        .step-title {
+            color: #e6b85c;
+            font-size: 24px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        /* 卡片网格，尺寸适中 */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .card {
+            background: #252d32;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 悬浮适度放大，不会溢出 */
+        .card:hover {
+            transform: scale(1.05);
+            border-color: #e6b85c;
+            z-index: 10;
+        }
+
+        .card.active {
+            border-color: #e6b85c;
+            background: #2a3530;
+        }
+
+        /* 右侧悬浮详情弹窗 */
+        .card-tooltip {
+            position: absolute;
+            left: 105%;
+            top: 0;
+            width: 260px;
+            background: #1e2529;
+            border: 1px solid #e6b85c;
+            border-radius: 8px;
+            padding: 14px;
+            font-size: 15px;
+            line-height: 1.6;
+            display: none;
+            white-space: pre-line;
+            z-index: 999;
+        }
+
+        .card:hover .card-tooltip {
+            display: block;
+        }
+
+        .card h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .card p {
+            font-size: 15px;
+            color: #ccc;
+            flex: 1;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+        }
+
+        /* 游戏对局面板 */
+        #battle-panel, #settle-panel {
+            display: none;
+        }
+
+        .panel {
+            background: #1e2529;
+            border-radius: 12px;
+            padding: 30px;
+            border: 1px solid #2d4a3e;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #333;
+            border-radius: 6px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #e6b85c;
+            transition: width 0.3s ease;
+        }
+
+        .area-info {
+            background: #252d32;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .area-info h2 {
+            font-size: 28px;
+            color: #fff;
+        }
+
+        /* 麦晓雯专属探测信息 - 单独显示在区域下方 */
+        .mai-detect-box {
+            background: rgba(45, 74, 62, 0.2);
+            border: 1px solid #2d4a3e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 17px;
+            line-height: 1.8;
+            display: none;
+        }
+
+        .tip-box {
+            padding: 12px;
+            border-radius: 8px;
+            margin: 12px 0;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .tip-box.success {
+            background: rgba(45, 74, 62, 0.2);
+            border: 1px solid #2d4a3e;
+        }
+
+        .tip-box.danger {
+            background: rgba(217, 43, 43, 0.2);
+            border: 1px solid #d92b2b;
+        }
+
+        /* 红包弹窗 */
+        .red-packet-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            display: none;
+        }
+
+        .red-packet-content {
+            background: #b82828;
+            padding: 50px 80px;
+            border-radius: 15px;
+            text-align: center;
+            border: 3px solid #ffcc33;
+        }
+
+        .red-packet-content h2 {
+            color: #ffcc33;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .red-packet-content p {
+            color: #fff;
+            font-size: 20px;
+            margin-bottom: 30px;
+        }
+
+        /* 行动按钮 */
+        .action-btns {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin: 25px 0;
+        }
+
+        .action-btn {
+            height: 100px;
+            font-size: 22px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 结算面板 */
+        .settle-title {
+            text-align: center;
+            font-size: 36px;
+            color: #e6b85c;
+            margin: 15px 0;
+            text-shadow: 0 0 8px rgba(230, 184, 92, 0.4);
+        }
+
+        .settle-data {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .settle-card {
+            background: #252d32;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .settle-card h3 {
+            font-size: 16px;
+            color: #aaa;
+            margin-bottom: 10px;
+        }
+
+        .settle-card p {
+            font-size: 28px;
+            color: #e6b85c;
+            font-weight: bold;
+        }
+
+        /* 响应式适配，小屏幕自动调整 */
+        @media (max-width: 900px) {
+            body {
+                padding: 20px;
+            }
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            .action-btns {
+                grid-template-columns: 1fr;
+            }
+            .card-tooltip {
+                left: 0;
+                top: 105%;
+            }
+            .settle-data {
+                grid-template-columns: 1fr;
+            }
+            .red-packet-content {
+                padding: 30px 40px;
+                margin: 0 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>三角洲新春活动模拟战</h1>
+        </header>
+
+        <!-- 顶部资源栏 -->
+        <div class="top-bar">
+            <div class="coin-info">活动币余额：<span id="coin-count">5000</span></div>
+            <button class="btn btn-gold" id="reset-btn">重置测试（刷新5000活动币）</button>
+        </div>
+
+        <!-- 分步选择容器 -->
+        <div id="select-container">
+            <!-- 步骤1：选择干员 -->
+            <div class="step-panel active" id="step-agent">
+                <h2 class="step-title">第一步：选择出战干员</h2>
+                <div class="grid">
+                    <div class="card" data-type="agent" data-id="fengyi">
+                        <h3>蜂医</h3>
+                        <p>收益强化 | 红包概率翻倍</p>
+                        <div class="card-tooltip">
+                            【干员机制】
+                            ✅ 所有带出物品价值提升30%
+                            ✅ 新春红包摸出概率提升100%
+                        </div>
+                    </div>
+                    <div class="card" data-type="agent" data-id="weilong">
+                        <h3>威龙</h3>
+                        <p>战斗强化 | 胜率大幅提升</p>
+                        <div class="card-tooltip">
+                            【干员机制】
+                            ✅ 装备基础属性大幅提升
+                            ✅ 战斗成功概率显著提高
+                        </div>
+                    </div>
+                    <div class="card" data-type="agent" data-id="maixiaowen">
+                        <h3>麦晓雯</h3>
+                        <p>信息强化 | 全区域信息透明</p>
+                        <div class="card-tooltip">
+                            【干员机制】
+                            ✅ 查看区域真实有人/无人状态
+                            ✅ 区域有人时提前知晓战斗胜率
+                            ✅ 无需概率猜测，提前规避风险
+                        </div>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button class="btn" id="next-to-equip">下一步：选择装备</button>
+                </div>
+            </div>
+
+            <!-- 步骤2：选择装备（完全隐藏战斗力） -->
+            <div class="step-panel" id="step-equip">
+                <h2 class="step-title">第二步：选择出战装备</h2>
+                <div class="grid">
+                    <div class="card" data-type="equip" data-id="uzi">
+                        <h3>UZI套装</h3>
+                        <p>消耗：200活动币</p>
+                        <div class="card-tooltip">
+                            【装备详情】
+                            消耗：200 活动币
+                            适配：新手试错、低成本开局
+                        </div>
+                    </div>
+                    <div class="card" data-type="equip" data-id="scarh">
+                        <h3>SCARH套装</h3>
+                        <p>消耗：400活动币</p>
+                        <div class="card-tooltip">
+                            【装备详情】
+                            消耗：400 活动币
+                            适配：均衡性价比、稳定发育
+                        </div>
+                    </div>
+                    <div class="card" data-type="equip" data-id="m7">
+                        <h3>M7套装</h3>
+                        <p>消耗：800活动币</p>
+                        <div class="card-tooltip">
+                            【装备详情】
+                            消耗：800 活动币
+                            适配：高风险高收益、极限冲榜
+                        </div>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-back" id="back-to-agent">返回上一步</button>
+                    <button class="btn" id="next-to-map">下一步：选择地图</button>
+                </div>
+            </div>
+
+            <!-- 步骤3：选择地图 -->
+            <div class="step-panel" id="step-map">
+                <h2 class="step-title">第三步：选择行动地图</h2>
+                <div class="grid">
+                    <div class="card" data-type="map" data-id="daba">
+                        <h3>大坝</h3>
+                        <p>3个行动区域<br>低风险 | 新手友好</p>
+                        <div class="card-tooltip">
+                            【地图详情】
+                            区域数量：3个
+                            风险等级：低
+                            适配：新手体验、稳扎稳打
+                        </div>
+                    </div>
+                    <div class="card" data-type="map" data-id="hangtian">
+                        <h3>航天基地</h3>
+                        <p>6个行动区域<br>中风险 | 策略优先</p>
+                        <div class="card-tooltip">
+                            【地图详情】
+                            区域数量：6个
+                            风险等级：中
+                            适配：核心玩家、策略博弈
+                        </div>
+                    </div>
+                    <div class="card" data-type="map" data-id="bakeshi">
+                        <h3>巴克什</h3>
+                        <p>8个行动区域<br>高风险 | 高收益上限</p>
+                        <div class="card-tooltip">
+                            【地图详情】
+                            区域数量：8个
+                            风险等级：高
+                            适配：硬核玩家、极限收益
+                        </div>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-back" id="back-to-equip">返回上一步</button>
+                    <button class="btn btn-gold" id="start-battle">开始行动</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 对局面板（全程无数值，仅麦晓雯可见探测信息） -->
+        <div id="battle-panel">
+            <div class="panel">
+                <h2 class="step-title" id="battle-map-name">行动中</h2>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="battle-progress" style="width: 0%"></div>
+                </div>
+
+                <!-- 仅保留区域名称，无任何数值 -->
+                <div class="area-info">
+                    <h2 id="battle-area-name">水泥厂</h2>
+                </div>
+
+                <!-- 麦晓雯专属探测信息 - 无人时隐藏胜率 -->
+                <div class="mai-detect-box" id="mai-detect-box">
+                    <div id="people-status-text">麦晓雯侦查结果：该区域<span id="area-people-status">无人</span></div>
+                    <div id="fight-rate-wrap" style="display: none;">
+                        本次战斗预计胜率：<span id="area-fight-rate">0%</span>
+                    </div>
+                </div>
+
+                <!-- 行动按钮，无任何数值 -->
+                <div class="action-btns">
+                    <button class="btn action-btn" id="btn-fight">⚔️ 战斗</button>
+                    <button class="btn action-btn" id="btn-search">🔍 搜索</button>
+                    <button class="btn action-btn" id="btn-leave">🚶 远离</button>
+                </div>
+
+                <div class="tip-box" id="battle-result" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- 红包专属弹窗 -->
+        <div class="red-packet-modal" id="red-packet-modal">
+            <div class="red-packet-content">
+                <h2>恭喜！！</h2>
+                <p>成功摸出新春红包！</p>
+                <button class="btn btn-gold" id="close-red-packet">确认领取</button>
+            </div>
+        </div>
+
+        <!-- 结算面板 -->
+        <div id="settle-panel">
+            <div class="panel">
+                <h2 class="settle-title" id="settle-title">行动成功！成功撤离！</h2>
+                <div class="settle-data">
+                    <div class="settle-card">
+                        <h3>最终收益</h3>
+                        <p id="settle-profit">0 哈夫币</p>
+                    </div>
+                    <div class="settle-card">
+                        <h3>完成区域</h3>
+                        <p id="settle-area">0 / 3</p>
+                    </div>
+                    <div class="settle-card">
+                        <h3>出战干员</h3>
+                        <p id="settle-agent">无</p>
+                    </div>
+                    <div class="settle-card">
+                        <h3>装备消耗</h3>
+                        <p id="settle-cost">0 活动币</p>
+                    </div>
+                </div>
+                <div style="text-align: center;">
+                    <button class="btn btn-gold" id="btn-back-to-select">返回选择界面</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===================== 核心数据 =====================
+        const agentConfig = {
+            fengyi: { name: '蜂医', profitRate: 1.3, redRateMulti: 2 },
+            weilong: { name: '威龙', powerMulti: 1.7 },
+            maixiaowen: { name: '麦晓雯', showPeopleInfo: true, showFightRate: true }
+        };
+
+        const equipConfig = {
+            uzi: { name: 'UZI套装', cost: 200, power: 100 },
+            scarh: { name: 'SCARH套装', cost: 400, power: 300 },
+            m7: { name: 'M7套装', cost: 800, power: 800 }
+        };
+
+        const mapConfig = {
+            daba: {
+                name: '大坝',
+                totalArea: 3,
+                fixPeopleCount: 2,
+                areas: [
+                    { name: '水泥厂', power: 300, profit: 100000, redRate: 0.05, hasPeople: false },
+                    { name: '行政楼', power: 600, profit: 200000, redRate: 0.1, hasPeople: false, showTip: true },
+                    // 最后一个区域：必定无人、红包概率正常（测试用100%，正式版需改为0.2）
+                    { name: '游客中心', power: 300, profit: 100000, redRate: 0.2, hasPeople: false }
+                ]
+            },
+            hangtian: {
+                name: '航天基地',
+                totalArea: 6,
+                fixPeopleCount: 4,
+                areas: [
+                    { name: '工业区', power: 400, profit: 100000, redRate: 0.05, hasPeople: false },
+                    { name: '中枢区', power: 400, profit: 100000, redRate: 0.05, hasPeople: false },
+                    { name: '蓝室', power: 600, profit: 150000, redRate: 0.1, hasPeople: false },
+                    { name: '黑室', power: 600, profit: 150000, redRate: 0.1, hasPeople: false },
+                    { name: '总裁室', power: 900, profit: 500000, redRate: 0.2, hasPeople: false, bossRate: 0.9 },
+                    // 最后一个区域：必定无人、红包概率正常（测试用100%，正式版需改为0.2）
+                    { name: '浮力室', power: 600, profit: 150000, redRate: 0.2, hasPeople: false }
+                ]
+            },
+            bakeshi: {
+                name: '巴克什',
+                totalArea: 8,
+                fixPeopleCount: 4,
+                areas: [
+                    { name: '蓝调山城', power: 500, profit: 100000, redRate: 0.05, hasPeople: false },
+                    { name: '阿萨拉营地', power: 500, profit: 100000, redRate: 0.05, hasPeople: false },
+                    { name: '巴克什大浴场', power: 500, profit: 100000, redRate: 0.05, hasPeople: false },
+                    { name: '巴克什集市', power: 500, profit: 100000, redRate: 0.05, hasPeople: false },
+                    { name: '皇家博物馆', power: 600, profit: 150000, redRate: 0.1, hasPeople: false, museumRate: 0.8 },
+                    { name: '樱桃小镇', power: 500, profit: 100000, redRate: 0.05, hasPeople: false },
+                    { name: '蓝汀旅馆', power: 500, profit: 100000, redRate: 0.05, hasPeople: false },
+                    // 最后一个区域：必定无人、红包概率正常（测试用100%，正式版需改为0.2）
+                    { name: '巴别塔', power: 750, profit: 0, redRate: 0.2, hasPeople: false }
+                ]
+            }
+        };
+
+        // ===================== 游戏全局状态 =====================
+        let gameState = {
+            coin: 5000,
+            selectedAgent: null,
+            selectedEquip: null,
+            selectedMap: null,
+            userPower: 0,
+            currentAreaIndex: 0,
+            totalProfit: 0,
+            currentMapData: null,
+            isBattleRunning: false
+        };
+
+        // ===================== DOM元素引用 =====================
+        const coinCountEl = document.getElementById('coin-count');
+        const resetBtnEl = document.getElementById('reset-btn');
+        const selectContainerEl = document.getElementById('select-container');
+        const battlePanelEl = document.getElementById('battle-panel');
+        const settlePanelEl = document.getElementById('settle-panel');
+        const redPacketModalEl = document.getElementById('red-packet-modal');
+        const closeRedPacketBtn = document.getElementById('close-red-packet');
+        const fightRateWrapEl = document.getElementById('fight-rate-wrap');
+
+        // 分步面板
+        const stepAgentEl = document.getElementById('step-agent');
+        const stepEquipEl = document.getElementById('step-equip');
+        const stepMapEl = document.getElementById('step-map');
+
+        // 分步按钮
+        const nextToEquipBtn = document.getElementById('next-to-equip');
+        const backToAgentBtn = document.getElementById('back-to-agent');
+        const nextToMapBtn = document.getElementById('next-to-map');
+        const backToEquipBtn = document.getElementById('back-to-equip');
+        const startBattleBtn = document.getElementById('start-battle');
+
+        // 对局按钮
+        const btnFight = document.getElementById('btn-fight');
+        const btnSearch = document.getElementById('btn-search');
+        const btnLeave = document.getElementById('btn-leave');
+        const btnBackToSelect = document.getElementById('btn-back-to-select');
+
+        // ===================== 初始化 =====================
+        window.onload = init;
+        function init() {
+            bindCardSelectEvent();
+            bindStepBtnEvent();
+            bindBattleBtnEvent();
+            updateCoinDisplay();
+            // 红包弹窗关闭事件
+            closeRedPacketBtn.addEventListener('click', () => {
+                redPacketModalEl.style.display = 'none';
+                nextArea();
+            });
+        }
+
+        // ===================== 事件绑定 =====================
+        // 卡片选择事件
+        function bindCardSelectEvent() {
+            document.querySelectorAll('.card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const type = card.dataset.type;
+                    const id = card.dataset.id;
+                    // 取消同类型其他卡片的选中状态
+                    document.querySelectorAll(`[data-type="${type}"]`).forEach(c => c.classList.remove('active'));
+                    // 选中当前卡片
+                    card.classList.add('active');
+                    // 保存选择
+                    if (type === 'agent') gameState.selectedAgent = id;
+                    if (type === 'equip') gameState.selectedEquip = id;
+                    if (type === 'map') gameState.selectedMap = id;
+                });
+            });
+        }
+
+        // 分步按钮事件
+        function bindStepBtnEvent() {
+            // 干员→装备
+            nextToEquipBtn.addEventListener('click', () => {
+                if (!gameState.selectedAgent) {
+                    alert('请先选择出战干员！');
+                    return;
+                }
+                stepAgentEl.classList.remove('active');
+                stepEquipEl.classList.add('active');
+            });
+
+            // 装备→干员
+            backToAgentBtn.addEventListener('click', () => {
+                stepEquipEl.classList.remove('active');
+                stepAgentEl.classList.add('active');
+            });
+
+            // 装备→地图
+            nextToMapBtn.addEventListener('click', () => {
+                if (!gameState.selectedEquip) {
+                    alert('请先选择出战装备！');
+                    return;
+                }
+                stepEquipEl.classList.remove('active');
+                stepMapEl.classList.add('active');
+            });
+
+            // 地图→装备
+            backToEquipBtn.addEventListener('click', () => {
+                stepMapEl.classList.remove('active');
+                stepEquipEl.classList.add('active');
+            });
+
+            // 开始行动
+            startBattleBtn.addEventListener('click', startBattle);
+
+            // 重置按钮
+            resetBtnEl.addEventListener('click', () => {
+                gameState.coin = 5000;
+                updateCoinDisplay();
+                alert('重置成功！已刷新5000活动币！');
+            });
+
+            // 结算返回
+            btnBackToSelect.addEventListener('click', backToSelectPage);
+        }
+
+        // 对局按钮事件
+        function bindBattleBtnEvent() {
+            btnFight.addEventListener('click', () => handleAction('fight'));
+            btnSearch.addEventListener('click', () => handleAction('search'));
+            btnLeave.addEventListener('click', () => handleAction('leave'));
+        }
+
+        // ===================== 核心游戏逻辑 =====================
+        // 开始对局
+        function startBattle() {
+            if (!gameState.selectedMap) {
+                alert('请先选择行动地图！');
+                return;
+            }
+            // 校验活动币
+            const equipCost = equipConfig[gameState.selectedEquip].cost;
+            if (gameState.coin < equipCost) {
+                alert('活动币不足，无法购置该装备！');
+                return;
+            }
+
+            // 扣除装备成本
+            gameState.coin -= equipCost;
+            updateCoinDisplay();
+
+            // 初始化对局数据
+            gameState.currentMapData = JSON.parse(JSON.stringify(mapConfig[gameState.selectedMap]));
+            gameState.userPower = equipConfig[gameState.selectedEquip].power;
+            // 威龙战力加成
+            if (gameState.selectedAgent === 'weilong') {
+                gameState.userPower = Math.floor(gameState.userPower * agentConfig.weilong.powerMulti);
+            }
+            gameState.currentAreaIndex = 0;
+            gameState.totalProfit = 0;
+            gameState.isBattleRunning = true;
+
+            // 生成区域有人状态
+            initAreaPeopleStatus();
+
+            // 切换到对局面板
+            selectContainerEl.style.display = 'none';
+            battlePanelEl.style.display = 'block';
+
+            // 加载第一个区域
+            loadCurrentArea();
+        }
+
+        // 生成区域有人状态
+        function initAreaPeopleStatus() {
+            const map = gameState.currentMapData;
+            const areas = map.areas;
+            const fixCount = map.fixPeopleCount;
+            let hasPeopleCount = 0;
+            // 最后一个区域强制无人，不参与随机
+            const normalAreas = areas.slice(0, -1);
+            const lastArea = areas[areas.length - 1];
+            lastArea.hasPeople = false;
+
+            if (gameState.selectedMap === 'daba') {
+                // 大坝：3个区域固定2个有人（仅前2个区域随机）
+                const randomIndexs = getRandomIndex(normalAreas.length, fixCount);
+                randomIndexs.forEach(idx => normalAreas[idx].hasPeople = true);
+            } else if (gameState.selectedMap === 'hangtian') {
+                // 航天：总裁区90%有人，总4个有人（前5个区域随机）
+                const bossArea = normalAreas.find(a => a.bossRate);
+                bossArea.hasPeople = Math.random() < bossArea.bossRate;
+                if (bossArea.hasPeople) hasPeopleCount++;
+                // 剩余区域补够数量
+                const otherAreas = normalAreas.filter(a => !a.bossRate);
+                const needCount = fixCount - hasPeopleCount;
+                const randomIndexs = getRandomIndex(otherAreas.length, needCount);
+                randomIndexs.forEach(idx => otherAreas[idx].hasPeople = true);
+            } else if (gameState.selectedMap === 'bakeshi') {
+                // 巴克什：博物馆80%有人，总4个有人（前7个区域随机）
+                const museumArea = normalAreas.find(a => a.museumRate);
+                museumArea.hasPeople = Math.random() < museumArea.museumRate;
+                if (museumArea.hasPeople) hasPeopleCount++;
+                // 剩余区域补够数量
+                const otherAreas = normalAreas.filter(a => !a.museumRate);
+                const needCount = fixCount - hasPeopleCount;
+                const randomIndexs = getRandomIndex(otherAreas.length, needCount);
+                randomIndexs.forEach(idx => otherAreas[idx].hasPeople = true);
+            }
+        }
+
+        // 加载当前区域（核心修改：无人时隐藏胜率）
+        function loadCurrentArea() {
+            const map = gameState.currentMapData;
+            const currentArea = map.areas[gameState.currentAreaIndex];
+            const agent = agentConfig[gameState.selectedAgent];
+
+            // 更新基础信息
+            document.getElementById('battle-map-name').innerText = `${map.name} - 行动中`;
+            document.getElementById('battle-area-name').innerText = currentArea.name;
+            // 更新进度条
+            const progress = (gameState.currentAreaIndex / map.totalArea) * 100;
+            document.getElementById('battle-progress').style.width = `${progress}%`;
+
+            // 计算战斗胜率
+            const fightRate = calcFightSuccessRate(gameState.userPower, currentArea.power);
+
+            // 麦晓雯专属探测信息显示控制
+            const maiDetectBoxEl = document.getElementById('mai-detect-box');
+            const peopleStatusEl = document.getElementById('area-people-status');
+            const fightRateEl = document.getElementById('area-fight-rate');
+            if (gameState.selectedAgent === 'maixiaowen' && agent.showPeopleInfo) {
+                maiDetectBoxEl.style.display = 'block';
+                peopleStatusEl.innerText = currentArea.hasPeople ? '有人' : '无人';
+                
+                // 核心逻辑：仅区域有人时显示胜率，无人时隐藏
+                if (currentArea.hasPeople) {
+                    fightRateWrapEl.style.display = 'block';
+                    fightRateEl.innerText = `${fightRate}%`;
+                } else {
+                    fightRateWrapEl.style.display = 'none';
+                }
+            } else {
+                maiDetectBoxEl.style.display = 'none';
+            }
+
+            // ✅ 新区域解锁所有按钮
+            btnFight.disabled = false;
+            btnSearch.disabled = false;
+            btnLeave.disabled = false;
+
+            // 重置结果提示
+            document.getElementById('battle-result').style.display = 'none';
+        }
+
+        // 战斗成功率公式
+        function calcFightSuccessRate(userPower, areaPower) {
+            let rate = (userPower / (userPower + areaPower)) + (userPower - areaPower) / 5000;
+            rate = Math.min(100, Math.max(0, Math.floor(rate * 100)));
+            return rate;
+        }
+
+        // 执行行动
+        function handleAction(type) {
+            // 锁定所有按钮，单区域仅可执行一次
+            btnFight.disabled = true;
+            btnSearch.disabled = true;
+            btnLeave.disabled = true;
+
+            const currentArea = gameState.currentMapData.areas[gameState.currentAreaIndex];
+            const agent = agentConfig[gameState.selectedAgent];
+            const resultEl = document.getElementById('battle-result');
+            resultEl.style.display = 'block';
+
+            // 远离操作
+            if (type === 'leave') {
+                resultEl.className = 'tip-box success';
+                resultEl.innerText = '已选择远离该区域，无收益无损失，安全前往下一区域！';
+                setTimeout(nextArea, 1500);
+                return;
+            }
+
+            // 战斗/搜索操作
+            let isSuccess = false;
+            if (type === 'fight') {
+                // 战斗逻辑
+                const rate = calcFightSuccessRate(gameState.userPower, currentArea.power) / 100;
+                isSuccess = Math.random() < rate;
+            } else {
+                // 搜索逻辑
+                if (currentArea.hasPeople) {
+                    // 有人，触发战斗，战力-20%
+                    const tempPower = Math.floor(gameState.userPower * 0.8);
+                    const rate = calcFightSuccessRate(tempPower, currentArea.power) / 100;
+                    isSuccess = Math.random() < rate;
+                } else {
+                    // 无人，直接成功
+                    isSuccess = true;
+                }
+            }
+
+            // 成功处理
+            if (isSuccess) {
+                let profit = 0;
+                let hasRedPacket = false;
+                if (type === 'fight') {
+                    profit = currentArea.power * 500;
+                } else {
+                    profit = currentArea.profit;
+                    // 红包逻辑
+                    let redRate = currentArea.redRate;
+                    if (gameState.selectedAgent === 'fengyi') {
+                        redRate *= agentConfig.fengyi.redRateMulti;
+                    }
+                    if (Math.random() < redRate) {
+                        hasRedPacket = true;
+                        let redProfit = 300000;
+                        if (gameState.selectedAgent === 'fengyi') {
+                            redProfit *= agentConfig.fengyi.profitRate;
+                        }
+                        profit += Math.floor(redProfit);
+                    }
+                }
+                // 蜂医收益加成
+                if (gameState.selectedAgent === 'fengyi') {
+                    profit *= agentConfig.fengyi.profitRate;
+                }
+                profit = Math.floor(profit);
+                gameState.totalProfit += profit;
+
+                // 结果提示
+                resultEl.className = 'tip-box success';
+                if (type === 'fight') {
+                    resultEl.innerText = '战斗成功！消灭所有敌人，已前往下一区域！';
+                } else {
+                    resultEl.innerText = '搜索成功！区域无人，已前往下一区域！';
+                }
+
+                // 红包单独弹窗
+                if (hasRedPacket) {
+                    setTimeout(() => {
+                        redPacketModalEl.style.display = 'flex';
+                    }, 1000);
+                } else {
+                    setTimeout(nextArea, 1800);
+                }
+            } else {
+                // 失败处理
+                resultEl.className = 'tip-box danger';
+                resultEl.innerText = '行动失败！被敌人击倒，行动终止！';
+                setTimeout(settleBattle, 1800);
+            }
+        }
+
+        // 前往下一区域
+        function nextArea() {
+            gameState.currentAreaIndex++;
+            const map = gameState.currentMapData;
+            // 到达撤离点，成功结算
+            if (gameState.currentAreaIndex >= map.totalArea) {
+                settleBattle(true);
+                return;
+            }
+            // 加载新区域
+            loadCurrentArea();
+        }
+
+        // 结算对局
+        function settleBattle(isSuccess) {
+            gameState.isBattleRunning = false;
+            battlePanelEl.style.display = 'none';
+            settlePanelEl.style.display = 'block';
+
+            // 更新结算信息
+            document.getElementById('settle-title').innerText = isSuccess ? '行动成功！成功撤离！' : '行动失败！未能撤离！';
+            document.getElementById('settle-profit').innerText = `${gameState.totalProfit.toLocaleString()} 哈夫币`;
+            document.getElementById('settle-area').innerText = `${gameState.currentAreaIndex} / ${gameState.currentMapData.totalArea}`;
+            document.getElementById('settle-agent').innerText = agentConfig[gameState.selectedAgent].name;
+            document.getElementById('settle-cost').innerText = `${equipConfig[gameState.selectedEquip].cost} 活动币`;
+        }
+
+        // 返回选择页面
+        function backToSelectPage() {
+            settlePanelEl.style.display = 'none';
+            selectContainerEl.style.display = 'block';
+            // 重置步骤
+            stepAgentEl.classList.add('active');
+            stepEquipEl.classList.remove('active');
+            stepMapEl.classList.remove('active');
+            // 清除选中状态
+            document.querySelectorAll('.card').forEach(card => card.classList.remove('active'));
+            // 重置游戏状态
+            gameState = {
+                coin: gameState.coin,
+                selectedAgent: null,
+                selectedEquip: null,
+                selectedMap: null,
+                userPower: 0,
+                currentAreaIndex: 0,
+                totalProfit: 0,
+                currentMapData: null,
+                isBattleRunning: false
+            };
+        }
+
+        // 更新活动币显示
+        function updateCoinDisplay() {
+            coinCountEl.innerText = gameState.coin;
+        }
+
+        // 工具函数：获取不重复的随机索引
+        function getRandomIndex(max, count) {
+            const indexs = [];
+            while (indexs.length < count) {
+                const idx = Math.floor(Math.random() * max);
+                if (!indexs.includes(idx)) {
+                    indexs.push(idx);
+                }
+            }
+            return indexs;
+        }
+    </script>
+</body>
+</html>
